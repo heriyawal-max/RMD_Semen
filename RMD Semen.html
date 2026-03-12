@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Raw Mix Design Calculator - Hitung proporsi material semen secara otomatis berdasarkan target LOI, BTL, dan SO3">
+  <title>Raw Mix Design Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗️</text></svg>">
+</head>
+
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand-container"
+        style="display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 32px; padding-bottom: 24px;">
+        <div class="sidebar-logo">
+          <img src="logo.png" alt="QCST Logo" style="width: 56px; height: auto; object-fit: contain;">
+        </div>
+        <div class="sidebar-brand-text" style="display: flex; flex-direction: column; justify-content: center;">
+          <div class="brand-title"
+            style="font-size: 1.4rem; font-weight: 800; color: white; line-height: 1.1; letter-spacing: 1px;">QCST</div>
+          <div class="brand-subtitle"
+            style="font-size: 0.65rem; font-weight: 600; color: white; letter-spacing: 0.5px;">Cepat.<span
+              style="color: #ea580c;">Akurat.</span>Presisi</div>
+        </div>
+      </div>
+    </div>
+    <ul class="sidebar-menu">
+      <li class="sidebar-item active" data-page="pageRMD">
+        <span class="sidebar-icon">🧮</span>
+        <span class="sidebar-text">Raw Mix Design</span>
+      </li>
+      <li class="sidebar-item" data-page="pageAnalysis">
+        <span class="sidebar-icon">📊</span>
+        <span class="sidebar-text">Analisis Akurasi Feeder</span>
+      </li>
+      <li class="sidebar-item" data-page="pageSimulation">
+        <span class="sidebar-icon">🔬</span>
+        <span class="sidebar-text">Simulasi Basis Kering</span>
+      </li>
+      <li class="sidebar-item" data-page="pageSimulationWet">
+        <span class="sidebar-icon">💧</span>
+        <span class="sidebar-text">Simulasi Basis Basah</span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="product-type-sidebar">
+        <label for="productType" class="product-type-label">🏭 Produk</label>
+        <select id="productType" class="product-type-select">
+          <option value="PCC" selected>PCC</option>
+          <option value="OPC">OPC</option>
+        </select>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
+
+    <!-- ===== MOBILE HEADER ===== -->
+    <div class="mobile-header">
+      <button class="sidebar-toggle" id="sidebarToggle"
+        style="color: white; border-color: rgba(255,255,255,0.2);">☰</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <img src="logo.png" alt="QCST Logo" style="width: 28px; height: auto; object-fit: contain;">
+        <h1
+          style="margin: 0; font-size: 1.2rem; font-weight: 800; color: white; background: none; -webkit-text-fill-color: white;">
+          QCST</h1>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ===== PAGE 1: RAW MIX DESIGN ===== -->
+    <!-- ========================================== -->
+    <div class="page active" id="pageRMD">
+      <div class="app-container">
+
+        <header class="app-header">
+          <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
+            Raw Mix Design
+          </h1>
+          <p>Cement Raw Mix Proportion Calculator</p>
+          <div class="header-line"></div>
+        </header>
+
+        <!-- SECTION 1: KOMPOSISI MATERIAL -->
+        <section class="section animate-in" id="compositionSection">
+          <div class="section-header">
+            <div class="section-icon">📊</div>
+            <div>
+              <div class="section-title">Komposisi Material</div>
+              <div class="section-subtitle">Klik pada nilai untuk mengubah komposisi setiap material</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="compositionTable">
+              <thead>
+                <tr>
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="material-controls">
+            <input type="text" id="newMaterialName" class="material-name-input"
+              placeholder="Nama material baru (contoh: Fly Ash)" maxlength="30">
+            <button class="btn btn-primary btn-sm" id="btnAddMaterial">➕ Tambah Material</button>
+            <button class="btn btn-secondary btn-sm" id="btnRemoveMaterial" style="display:none;">🗑️ Hapus Material
+              Terakhir</button>
+          </div>
+        </section>
+
+        <!-- SECTION 2: TARGET & PROPORSI -->
+        <section class="section animate-in" id="targetSection">
+          <div class="section-header">
+            <div class="section-icon">🎯</div>
+            <div>
+              <div class="section-title">Target & Hitung Proporsi</div>
+              <div class="section-subtitle">Masukkan target parameter, lalu klik Hitung untuk mendapatkan proporsi</div>
+            </div>
+          </div>
+
+          <div class="target-grid">
+            <div class="target-item">
+              <label for="targetLOI">Target LOI (%)</label>
+              <input type="number" step="0.01" id="targetLOI" placeholder="Contoh: 13.5">
+            </div>
+            <div class="target-item">
+              <label for="targetBTL">Target BTL (%)</label>
+              <input type="number" step="0.01" id="targetBTL" placeholder="Contoh: 8.5">
+            </div>
+            <div class="target-item">
+              <label for="targetSO3">Target SO3 (%)</label>
+              <input type="number" step="0.01" id="targetSO3" placeholder="Contoh: 1.8">
+            </div>
+          </div>
+
+          <div id="lockControls" class="lock-controls">
+            <!-- Populated by JS -->
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btnCalculate">
+              🧮 Hitung Proporsi
+            </button>
+            <button class="btn btn-secondary" id="btnReset">
+              🔄 Reset
+            </button>
+          </div>
+
+          <div id="solverStatus" class="status-msg"></div>
+        </section>
+
+        <!-- SECTION 3: HASIL PROPORSI -->
+        <section class="section animate-in hidden" id="resultSection">
+          <div class="section-header">
+            <div class="section-icon">📋</div>
+            <div>
+              <div class="section-title">Hasil Proporsi</div>
+              <div class="section-subtitle">Proporsi kering dan basah beserta nilai yang dicapai</div>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card">
+              <h3>🏜️ Proporsi Kering (Dry Basis)</h3>
+              <div id="dryProportions"></div>
+            </div>
+            <div class="result-card">
+              <h3>💧 Proporsi Basah (Wet Basis)</h3>
+              <div id="wetProportions"></div>
+            </div>
+          </div>
+
+          <div class="section-divider"><span>Nilai Tercapai vs Target</span></div>
+          <div id="achievedValues" class="result-card" style="margin-top: 0;"></div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ===== PAGE 2: ANALISIS AKTUAL vs RMD ===== -->
+    <!-- ========================================== -->
+    <div class="page" id="pageAnalysis">
+      <div class="app-container">
+
+        <header class="app-header">
+          <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
+            Analisis Aktual vs RMD
+          </h1>
+          <p>Bandingkan data aktual proses dengan perhitungan Raw Mix Design</p>
+          <div class="header-line"></div>
+        </header>
+
+        <!-- DATA AKTUAL 24 JAM -->
+        <section class="section animate-in" id="comparisonSection">
+          <div class="section-header">
+            <div class="section-icon">📝</div>
+            <div>
+              <div class="section-title">Data Aktual Beberapa Jam Terakhir</div>
+              <div class="section-subtitle">Masukkan data aktual atau <strong>copy dari Excel lalu paste
+                  langsung</strong> ke sel pertama. Baris kosong akan diabaikan.</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="actualDataTable">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllActual" checked
+                      title="Pilih Semua"></th>
+                  <th>Jam</th>
+                  <th>LOI</th>
+                  <th>SO3</th>
+                  <th>BTL</th>
+                  <!-- Material wet composition headers populated by JS -->
+                </tr>
+              </thead>
+              <tbody id="actualDataBody">
+                <!-- 24 rows populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="btn-group" style="margin-top: 20px;">
+            <button class="btn btn-primary" id="btnAnalyze">
+              📊 Analisis Data Aktual
+            </button>
+            <button class="btn btn-secondary" id="btnClearActual">
+              🗑️ Kosongkan Data
+            </button>
+          </div>
+
+          <div id="analyzeStatus" class="status-msg"></div>
+        </section>
+
+        <!-- RATA-RATA & RINGKASAN -->
+        <section class="section animate-in hidden" id="averageSection">
+          <div class="section-header">
+            <div class="section-icon">📊</div>
+            <div>
+              <div class="section-title">Rata-rata Data Aktual</div>
+              <div class="section-subtitle">Nilai rata-rata dari data aktual 24 jam terakhir</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Rata-rata Aktual</th>
+                </tr>
+              </thead>
+              <tbody id="averageSummaryTable">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-divider" style="margin-top: 24px;"><span>Komposisi Basah Aktual (Rata-rata)</span></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr id="avgCompHead">
+                  <th>Material</th>
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="avgCompRow">
+                  <!-- Populated by JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- PROPORSI RMD BERDASARKAN AKTUAL -->
+        <section class="section animate-in hidden" id="recalcSection">
+          <div class="section-header">
+            <div class="section-icon">🧮</div>
+            <div>
+              <div class="section-title">Proporsi RMD (Berdasarkan LOI/SO3/BTL Aktual)</div>
+              <div class="section-subtitle">Komposisi yang seharusnya menurut raw mix design, dihitung dari rata-rata
+                LOI, SO3, BTL aktual</div>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card">
+              <h3>🏜️ Proporsi Kering RMD</h3>
+              <div id="recalcDryProportions"></div>
+            </div>
+            <div class="result-card">
+              <h3>💧 Proporsi Basah RMD</h3>
+              <div id="recalcWetProportions"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PERBANDINGAN KOMPOSISI AKTUAL vs RMD -->
+        <section class="section animate-in hidden" id="deviationSection">
+          <div class="section-header">
+            <div class="section-icon">⚖️</div>
+            <div>
+              <div class="section-title">Perbandingan Komposisi: Aktual vs RMD</div>
+              <div class="section-subtitle">Selisih antara komposisi basah aktual dan komposisi menurut raw mix design
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Aktual (%)</th>
+                  <th>RMD (%)</th>
+                  <th>Selisih</th>
+                  <th>Deviasi (%)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonTable">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-divider" style="margin-top: 24px;"><span>Kesimpulan & Analisis</span></div>
+          <div id="conclusionBox" class="result-card" style="margin-bottom: 16px;"></div>
+          <div class="prediction-grid" id="predictionCards"></div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ===== PAGE 3: SIMULASI KOMPOSISI ===== -->
+    <!-- ========================================== -->
+    <div class="page" id="pageSimulation">
+      <div class="app-container">
+
+        <header class="app-header">
+          <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
+            Simulasi Komposisi Basis Kering
+          </h1>
+          <p>Hitung LOI, BTL, SO3, dan Index Clinker dari komposisi kering</p>
+          <div class="header-line"></div>
+        </header>
+
+        <section class="section animate-in" id="simSection">
+          <div class="section-header">
+            <div class="section-icon">⚙️</div>
+            <div>
+              <div class="section-title">Input Target Komposisi Kering (%)</div>
+              <div class="section-subtitle">Masukkan proporsi kering setiap material. Clinker akan dihitung otomatis
+                (100% - total lainnya).</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="simTable">
+              <thead>
+                <tr id="simTableHead">
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="simTableRow">
+                  <!-- Populated by JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="btn-group" style="margin-top: 16px;">
+            <button class="btn btn-primary" id="btnSimCalculate">
+              🔬 Hitung Hasil
+            </button>
+          </div>
+        </section>
+
+        <!-- HASIL SIMULASI -->
+        <section class="section animate-in hidden" id="simResultSection">
+          <div class="section-header">
+            <div class="section-icon">📋</div>
+            <div>
+              <div class="section-title">Simulasi Mutu</div>
+              <div class="section-subtitle">Nilai LOI, BTL, SO3, dan Index Clinker berdasarkan komposisi kering yang
+                diinput</div>
+            </div>
+          </div>
+
+          <div id="simResults" class="result-card"></div>
+
+          <div class="section-divider" style="margin-top: 24px;"><span>Simulasi Setpoint (Komposisi Basah)</span></div>
+          <div class="table-wrapper">
+            <table id="simWetTable">
+              <thead>
+                <tr id="simWetTableHead">
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="simWetTableRow">
+                  <!-- Populated by JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ===== PAGE 4: SIMULASI KOMPOSISI BASAH ===== -->
+    <!-- ========================================== -->
+    <div class="page" id="pageSimulationWet">
+      <div class="app-container">
+
+        <header class="app-header">
+          <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
+            Simulasi Komposisi Basis Basah
+          </h1>
+          <p>Hitung LOI, BTL, SO3, dan Index Clinker berdasarkan input material dengan kadar H2O aktual (Wet Basis)</p>
+          <div class="header-line"></div>
+        </header>
+
+        <section class="section animate-in" id="simWetSection">
+          <div class="section-header">
+            <div class="section-icon">⚙️</div>
+            <div>
+              <div class="section-title">Input Target Komposisi Basah (%)</div>
+              <div class="section-subtitle">Masukkan proporsi basah setiap material. Clinker akan dihitung otomatis
+                (100% - total lainnya).</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="simWetInputTable">
+              <thead>
+                <tr id="simWetInputTableHead">
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="simWetInputTableRow">
+                  <!-- Populated by JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="btn-group" style="margin-top: 16px;">
+            <button class="btn btn-primary" id="btnSimWetCalculate">
+              🔬 Hitung Hasil
+            </button>
+          </div>
+        </section>
+
+        <!-- HASIL SIMULASI -->
+        <section class="section animate-in hidden" id="simWetResultSection">
+          <div class="section-header">
+            <div class="section-icon">📋</div>
+            <div>
+              <div class="section-title">Simulasi Mutu</div>
+              <div class="section-subtitle">Nilai LOI, BTL, SO3, dan Index Clinker berdasarkan komposisi kering
+                ekuivalen</div>
+            </div>
+          </div>
+
+          <div id="simWetResults" class="result-card"></div>
+
+          <div class="section-divider" style="margin-top: 24px;"><span>Simulasi Proporsi Kering (Dry Basis
+              Ekuivalen)</span></div>
+          <div class="table-wrapper">
+            <table id="simWetToDryTable">
+              <thead>
+                <tr id="simWetToDryTableHead">
+                  <!-- Populated by JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="simWetToDryTableRow">
+                  <!-- Populated by JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
