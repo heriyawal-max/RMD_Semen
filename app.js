@@ -1050,6 +1050,7 @@ function setupActualSection() {
   renderActualTable();
   setupPasteHandler();
   document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
+  document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
   document.getElementById('btnClearActual').addEventListener('click', clearActualData);
 }
 
@@ -1361,6 +1362,10 @@ function runAnalysis() {
   }
 
   showStatus(statusEl, 'success', `✅ Analisis berhasil! ${n} baris data diproses.`);
+
+  // Show Export PDF button
+  const btnExport = document.getElementById('btnExportPDF');
+  if (btnExport) btnExport.style.display = 'inline-flex';
 }
 
 function getActualVal(row, prop) {
@@ -1780,6 +1785,25 @@ function clearActualData() {
   showStatus(document.getElementById('analyzeStatus'), 'info', 'ℹ️ Data aktual telah dikosongkan.');
 }
 
+// ===== EXPORT PDF =====
+function exportPDF() {
+  // Update print header info
+  const dateEl = document.getElementById('printDate');
+  const prodEl = document.getElementById('printProductType');
+  const now = new Date();
+  
+  const dateStr = now.toLocaleDateString('id-ID', { 
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+
+  if (dateEl) dateEl.textContent = `Tanggal Cetak: ${dateStr}`;
+  if (prodEl) prodEl.textContent = `Produk: ${getProductType()} (${getFeederMode().toUpperCase()})`;
+
+  // Trigger browser print
+  window.print();
+}
+
 // ===== UTILITY FUNCTIONS =====
 function showStatus(el, type, message) {
   el.className = `status-msg visible ${type}`;
@@ -1802,6 +1826,9 @@ function resetAll() {
   document.getElementById('averageSection').classList.add('hidden');
   document.getElementById('recalcSection').classList.add('hidden');
   document.getElementById('deviationSection').classList.add('hidden');
+  
+  const btnExport = document.getElementById('btnExportPDF');
+  if (btnExport) btnExport.style.display = 'none';
 
   // Reset locks
   document.querySelectorAll('#lockControls .lock-item').forEach(item => {

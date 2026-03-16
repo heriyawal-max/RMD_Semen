@@ -213,6 +213,20 @@
           <div class="header-line"></div>
         </header>
 
+        <!-- PRINTER HEADER (Visible only in PDF/Print) -->
+        <div class="print-only">
+          <div class="report-header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+              <img src="logo.png" alt="Logo" style="width: 50px;">
+              <h1 style="margin:0; font-size: 2rem;">BERITA ACARA ANALISIS FEEDER</h1>
+            </div>
+            <div class="report-meta">
+              <span id="printProductType">Produk: -</span>
+              <span id="printDate">Tanggal: -</span>
+            </div>
+          </div>
+        </div>
+
         <!-- DATA AKTUAL 24 JAM -->
         <section class="section animate-in" id="comparisonSection">
           <div class="section-header">
@@ -246,6 +260,9 @@
           <div class="btn-group" style="margin-top: 20px;">
             <button class="btn btn-primary" id="btnAnalyze">
               📊 Analisis Data Aktual
+            </button>
+            <button class="btn btn-success" id="btnExportPDF" style="display:none;">
+              📄 Export Berita Acara (PDF)
             </button>
             <button class="btn btn-secondary" id="btnClearActual">
               🗑️ Kosongkan Data

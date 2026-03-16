@@ -1201,3 +1201,121 @@ th:hover .col-header-actions {
   margin-left: 4px;
   font-weight: 700;
 }
+/* ===== Print Styles (PDF Export) ===== */
+@media print {
+  body {
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  body::before, .sidebar, .mobile-header, .btn-group, .material-controls, .product-type-sidebar, .header-line {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .page {
+    display: none !important;
+  }
+
+  .page.active {
+    display: block !important;
+  }
+
+  /* Hide raw input table for Analysis page */
+  #comparisonSection {
+    display: none !important;
+  }
+
+  .section {
+    border: none !important;
+    box-shadow: none !important;
+    margin-bottom: 20px !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .section-header {
+    margin-bottom: 10px !important;
+  }
+
+  .section-icon {
+    display: none !important;
+  }
+
+  .section-divider {
+    margin: 15px 0 !important;
+  }
+
+  .table-wrapper {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ddd !important;
+    color: black !important;
+    font-size: 10pt !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+  }
+
+  .prediction-grid {
+    display: block !important;
+  }
+
+  .prediction-card {
+    margin-bottom: 10px !important;
+    break-inside: avoid;
+    border: 1px solid #ddd !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .prediction-card.excess { border-left: 5px solid var(--danger) !important; }
+  .prediction-card.deficit { border-left: 5px solid var(--warning) !important; }
+  .prediction-card.normal { border-left: 5px solid var(--success) !important; }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+}
+
+.report-header h2 {
+  margin: 10px 0 5px;
+  font-size: 1.6rem;
+}
+
+.report-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Ensure cards in print look good */
+@media print {
+  .prediction-card .material-name {
+    margin-bottom: 4px;
+  }
+  .prediction-detail {
+    font-size: 9pt;
+  }
+}
