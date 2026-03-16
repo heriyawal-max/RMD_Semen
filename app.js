@@ -14,11 +14,12 @@ const DEFAULT_DATA = {
   'Batu Kapur':{ LOI: 40.60, SO3: 0.30,  BTL: 0.83,  H2O: 9.00 },
   Trass:       { LOI: 10.60, SO3: 0.07,  BTL: 66.30, H2O: 29.00 },
   CKD:         { LOI: 37.08, SO3: 0.03,  BTL: 12.10, H2O: 0.20 },
+  'Fly Ash':   { LOI: 0.38,  SO3: 0.58,  BTL: 64.00, H2O: 0.40 },
 };
 
 // ===== App State =====
 let materialData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-let materials = [...DEFAULT_MATERIALS, 'CKD']; // CKD added as custom material
+let materials = [...DEFAULT_MATERIALS, 'CKD', 'Fly Ash']; // CKD & FA added as default custom materials
 let lastResult = null; // stores last solver result
 
 // ===== Product Type & Feeder Mode =====
@@ -599,6 +600,7 @@ function removeMaterialByName(name) {
   materials.splice(idx, 1);
   delete materialData[name];
 
+  saveData();
   refreshAll();
 }
 
