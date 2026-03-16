@@ -793,9 +793,9 @@ tbody tr:last-child td {
 }
 
 .prediction-card .material-name {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .prediction-card.excess .material-name { color: var(--danger); }
@@ -803,9 +803,9 @@ tbody tr:last-child td {
 .prediction-card.normal .material-name { color: var(--success); }
 
 .prediction-card .prediction-detail {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .prediction-card .prediction-icon {

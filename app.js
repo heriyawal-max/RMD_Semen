@@ -21,10 +21,15 @@ let materialData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let materials = [...DEFAULT_MATERIALS, 'CKD']; // CKD added as custom material
 let lastResult = null; // stores last solver result
 
-// ===== Product Type =====
+// ===== Product Type & Feeder Mode =====
 function getProductType() {
   const el = document.getElementById('productType');
   return el ? el.value : 'PCC';
+}
+
+function getFeederMode() {
+  const el = document.getElementById('feederMode');
+  return el ? el.value : 'normal';
 }
 
 function calcIndexClinker(LOI, SO3, BTL) {
@@ -73,6 +78,24 @@ function setupSidebar() {
       if (pageId === 'pageSimulationWet') renderSimulationWetTable();
     });
   });
+
+  const productToggle = document.getElementById('productType');
+  if (productToggle) {
+    productToggle.addEventListener('change', () => {
+      if (lastResult) calculateProportions();
+    });
+  }
+
+  const feederToggle = document.getElementById('feederMode');
+  if (feederToggle) {
+    feederToggle.addEventListener('change', () => {
+      // Re-render actual UI when mode changes
+      renderActualTable();
+      if (lastResult) {
+        calculateProportions();
+      }
+    });
+  }
 
   // Mobile toggle
   const toggle = document.getElementById('sidebarToggle');
@@ -231,6 +254,21 @@ function runSimulation() {
     });
   }
 
+  // Mix Ratio display
+  const mode = getFeederMode();
+  if (mode === 'mix' && wetProp['Batu Kapur'] !== undefined && wetProp['Trass'] !== undefined) {
+    const totalMix = wetProp['Batu Kapur'] + wetProp['Trass'];
+    if (totalMix > 0) {
+      const pctKapur = (wetProp['Batu Kapur'] / totalMix * 100).toFixed(1);
+      const pctTrass = (wetProp['Trass'] / totalMix * 100).toFixed(1);
+      container.innerHTML += `
+        <div class="proportion-row" style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);">
+          <span class="proportion-name text-accent">⚙️ Rasio Mix (Basah)</span>
+          <span class="proportion-value text-accent" style="width:auto;">B.Kapur ${pctKapur}% : Trass ${pctTrass}%</span>
+        </div>`;
+    }
+  }
+
   // Display Wet Proportions
   const wetHead = document.getElementById('simWetTableHead');
   const wetRow = document.getElementById('simWetTableRow');
@@ -372,6 +410,20 @@ function runSimulationWet() {
       <span class="proportion-name">Total Wet</span>
       <span class="proportion-value">${totalWet.toFixed(2)}%</span>
     </div>`;
+
+  // Mix Ratio display
+  const mode = getFeederMode();
+  if (mode === 'mix' && wetProp['Batu Kapur'] !== undefined && wetProp['Trass'] !== undefined) {
+    const trassVal = wetProp['Trass'];
+    if (trassVal > 0) {
+      const ratio = (wetProp['Batu Kapur'] / trassVal).toFixed(1);
+      container.innerHTML += `
+        <div class="proportion-row" style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);">
+          <span class="proportion-name text-accent">⚙️ Rasio Mix (Basah)</span>
+          <span class="proportion-value text-accent" style="width:auto;">B.Kapur ${ratio} : Trass 1.0</span>
+        </div>`;
+    }
+  }
 
   // Display Dry Proportions
   const dryHead = document.getElementById('simWetToDryTableHead');
@@ -556,14 +608,15 @@ function setupLockControls() {
   container.innerHTML = '<div class="lock-title">🔒 Lock Material (Tetapkan proporsi basah/wet)</div>';
 
   materials.forEach(m => {
+    const isCustom = !DEFAULT_MATERIALS.includes(m);
     const div = document.createElement('div');
-    div.className = 'lock-item';
+    div.className = `lock-item ${isCustom ? 'locked' : ''}`;
     div.innerHTML = `
-      <input type="checkbox" id="lock_${m.replace(/\s/g,'_')}" data-material="${m}">
-      <span class="lock-icon">🔓</span>
+      <input type="checkbox" id="lock_${m.replace(/\s/g,'_')}" data-material="${m}" ${isCustom ? 'checked' : ''}>
+      <span class="lock-icon">${isCustom ? '🔒' : '🔓'}</span>
       <span class="lock-name">${m}</span>
       <input type="number" step="0.1" class="lock-value-input" 
-             data-material="${m}" value="5" min="0" max="100" placeholder="%">
+             data-material="${m}" value="${isCustom ? '0' : '5'}" min="0" max="100" placeholder="%">
     `;
 
     const cb = div.querySelector('input[type="checkbox"]');
@@ -937,6 +990,20 @@ function displayResults(dryProp, wetProp, achieved, targets) {
       <span>${wetTotal.toFixed(2)}%</span>
     </div>`;
 
+  // Mix Ratio display for RMD Target Output
+  const mode = getFeederMode();
+  if (mode === 'mix' && wetProp['Batu Kapur'] !== undefined && wetProp['Trass'] !== undefined) {
+    const trassVal = wetProp['Trass'];
+    if (trassVal > 0) {
+      const ratio = (wetProp['Batu Kapur'] / trassVal).toFixed(1);
+      wetContainer.innerHTML += `
+        <div class="proportion-row" style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-color);">
+          <span class="proportion-name text-accent">⚙️ Rasio Mix (Basah)</span>
+          <span class="proportion-value text-accent" style="width:auto;">B.Kapur ${ratio} : Trass 1.0</span>
+        </div>`;
+    }
+  }
+
   // Achieved values
   const achievedContainer = document.getElementById('achievedValues');
   achievedContainer.innerHTML = '';
@@ -985,10 +1052,26 @@ function setupActualSection() {
 }
 
 function renderActualTable() {
-  // Rebuild the entire thead (fixes duplicate headers on refresh)
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  
+  if (mode === 'mix') {
+    // Replace Batu Kapur and Trass with Mix Material
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') {
+        displayMaterials.push('Mix Material');
+      } else if (m !== 'Trass') {
+        displayMaterials.push(m);
+      }
+    });
+  } else {
+    displayMaterials = [...materials];
+  }
+
+  // Rebuild the entire thead
   const thead = document.querySelector('#actualDataTable thead tr');
   thead.innerHTML = '<th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllActual" checked title="Pilih Semua"></th><th>Jam</th><th>LOI</th><th>SO3</th><th>BTL</th>';
-  materials.forEach(m => {
+  displayMaterials.forEach(m => {
     const th = document.createElement('th');
     th.textContent = m + ' (%)';
     th.style.fontSize = '0.75rem';
@@ -1012,7 +1095,7 @@ function renderActualTable() {
     });
 
     // Material wet composition inputs
-    materials.forEach(m => {
+    displayMaterials.forEach(m => {
       tr.innerHTML += `<td><input type="number" step="0.01" class="cell-input actual-comp" 
                         data-row="${i}" data-material="${m}" placeholder="-"></td>`;
     });
@@ -1118,14 +1201,22 @@ function setupPasteHandler() {
  * Build the column order array for the actual data table.
  * Returns array of { type: 'param'|'comp', key: string }
  */
+// ===== PASTE HANDLER OVERRIDE =====
 function buildColumnOrder() {
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
+    });
+  } else {
+    displayMaterials = [...materials];
+  }
+
   const cols = [];
-  ['LOI', 'SO3', 'BTL'].forEach(prop => {
-    cols.push({ type: 'param', key: prop });
-  });
-  materials.forEach(m => {
-    cols.push({ type: 'comp', key: m });
-  });
+  ['LOI', 'SO3', 'BTL'].forEach(prop => cols.push({ type: 'param', key: prop }));
+  displayMaterials.forEach(m => cols.push({ type: 'comp', key: m }));
   return cols;
 }
 
@@ -1157,9 +1248,15 @@ function getInputByRowAndCol(row, col) {
 function runAnalysis() {
   const statusEl = document.getElementById('analyzeStatus');
 
-  if (!lastResult) {
-    showStatus(statusEl, 'error', '⚠️ Hitung proporsi pada Section Target terlebih dahulu.');
-    return;
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
+    });
+  } else {
+    displayMaterials = [...materials];
   }
 
   // Collect all rows with data
@@ -1177,7 +1274,7 @@ function runAnalysis() {
 
     const comp = {};
     let hasComp = false;
-    materials.forEach(m => {
+    displayMaterials.forEach(m => {
       const val = getActualComp(i, m);
       comp[m] = val;
       if (val !== null) hasComp = true;
@@ -1201,7 +1298,7 @@ function runAnalysis() {
   // Calculate averages
   const avgParams = { LOI: 0, SO3: 0, BTL: 0 };
   const avgComp = {};
-  materials.forEach(m => avgComp[m] = 0);
+  displayMaterials.forEach(m => avgComp[m] = 0);
 
   let compCount = 0;
 
@@ -1211,7 +1308,7 @@ function runAnalysis() {
     avgParams.BTL += r.BTL;
     if (r.hasComp) {
       compCount++;
-      materials.forEach(m => {
+      displayMaterials.forEach(m => {
         avgComp[m] += (r.comp[m] || 0);
       });
     }
@@ -1223,7 +1320,7 @@ function runAnalysis() {
   avgParams.BTL /= n;
 
   if (compCount > 0) {
-    materials.forEach(m => avgComp[m] /= compCount);
+    displayMaterials.forEach(m => avgComp[m] /= compCount);
   }
 
   // Step 2: Display averaged values
@@ -1231,6 +1328,16 @@ function runAnalysis() {
 
   // Step 3: Re-solve using average LOI/SO3/BTL as targets
   const lockedWet = getLockedMaterials();
+
+  // Override lockedWet for custom/non-default materials based on actual input
+  if (compCount > 0) {
+    materials.forEach(m => {
+      if (!DEFAULT_MATERIALS.includes(m) && avgComp[m] !== undefined && avgComp[m] > 0) {
+        lockedWet[m] = avgComp[m]; // Force RMD baseline to match actual input
+      }
+    });
+  }
+
   const recalcResult = solveWithTargets(avgParams, lockedWet);
 
   if (!recalcResult) {
@@ -1241,14 +1348,14 @@ function runAnalysis() {
   // Step 4: Display recalculated proportions
   displayRecalculated(recalcResult);
 
-  // Step 5: Compare actual composition vs ideal, with analysis
+  // Step 5: Compare actual composition vs ideal
   if (compCount > 0) {
     displayDeviation(avgComp, recalcResult.wetProportions);
-    generateConclusion(avgParams, avgComp, recalcResult, lastResult);
+    generateConclusion(avgParams, avgComp, recalcResult);
   } else {
-    // No composition data, just show parameter comparison
+    // No composition data, just show parameter summary
     displayDeviationParamsOnly(avgParams, recalcResult);
-    generateConclusionParamsOnly(avgParams, lastResult);
+    generateConclusionParamsOnly(avgParams);
   }
 
   showStatus(statusEl, 'success', `✅ Analisis berhasil! ${n} baris data diproses.`);
@@ -1373,16 +1480,27 @@ function displayAverageSummary(avgParams, avgComp, hasComp) {
   // Composition average row
   if (hasComp) {
     const headRow = document.getElementById('avgCompHead');
+    const mode = getFeederMode();
+    let displayMaterials = [];
+    if (mode === 'mix') {
+      materials.forEach(m => {
+        if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+        else if (m !== 'Trass') displayMaterials.push(m);
+      });
+    } else {
+      displayMaterials = [...materials];
+    }
+    
     headRow.innerHTML = '<th>Parameter</th>';
-    materials.forEach(m => { headRow.innerHTML += `<th>${m}</th>`; });
+    displayMaterials.forEach(m => { headRow.innerHTML += `<th>${m}</th>`; });
     headRow.innerHTML += '<th>Total</th>';
 
     const dataRow = document.getElementById('avgCompRow');
     dataRow.innerHTML = '<td><strong>Rata-rata (%)</strong></td>';
     let total = 0;
-    materials.forEach(m => {
-      dataRow.innerHTML += `<td style="font-weight:600;color:var(--text-accent);">${avgComp[m].toFixed(2)}</td>`;
-      total += avgComp[m];
+    displayMaterials.forEach(m => {
+      dataRow.innerHTML += `<td style="font-weight:600;color:var(--text-accent);">${(avgComp[m] || 0).toFixed(2)}</td>`;
+      total += (avgComp[m] || 0);
     });
     dataRow.innerHTML += `<td style="font-weight:700;color:var(--text-primary);">${total.toFixed(2)}</td>`;
   }
@@ -1392,15 +1510,34 @@ function displayRecalculated(result) {
   const section = document.getElementById('recalcSection');
   section.classList.remove('hidden');
 
-  const dryProp = result.dryProportions;
-  const wetProp = result.wetProportions;
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
+    });
+  } else {
+    displayMaterials = [...materials];
+  }
+
+  const dryPropRaw = result.dryProportions;
+  const wetPropRaw = result.wetProportions;
+
+  const dryProp = { ...dryPropRaw };
+  const wetProp = { ...wetPropRaw };
+
+  if (mode === 'mix') {
+    dryProp['Mix Material'] = (dryProp['Batu Kapur'] || 0) + (dryProp['Trass'] || 0);
+    wetProp['Mix Material'] = (wetProp['Batu Kapur'] || 0) + (wetProp['Trass'] || 0);
+  }
 
   // Dry
   const dryContainer = document.getElementById('recalcDryProportions');
   dryContainer.innerHTML = '';
   let dryTotal = 0;
-  const maxDry = Math.max(...materials.map(m => dryProp[m]));
-  materials.forEach(m => {
+  const maxDry = Math.max(...displayMaterials.map(m => dryProp[m]));
+  displayMaterials.forEach(m => {
     const val = dryProp[m];
     dryTotal += val;
     dryContainer.innerHTML += `
@@ -1422,8 +1559,8 @@ function displayRecalculated(result) {
   const wetContainer = document.getElementById('recalcWetProportions');
   wetContainer.innerHTML = '';
   let wetTotal = 0;
-  const maxWet = Math.max(...materials.map(m => wetProp[m]));
-  materials.forEach(m => {
+  const maxWet = Math.max(...displayMaterials.map(m => wetProp[m]));
+  displayMaterials.forEach(m => {
     const val = wetProp[m];
     wetTotal += val;
     wetContainer.innerHTML += `
@@ -1440,6 +1577,19 @@ function displayRecalculated(result) {
       <span>Total</span>
       <span>${wetTotal.toFixed(2)}%</span>
     </div>`;
+
+  // Mix Ratio display
+  if (mode === 'mix' && wetPropRaw['Batu Kapur'] !== undefined && wetPropRaw['Trass'] !== undefined) {
+    const trassVal = wetPropRaw['Trass'];
+    if (trassVal > 0) {
+      const ratio = (wetPropRaw['Batu Kapur'] / trassVal).toFixed(1);
+      wetContainer.innerHTML += `
+        <div class="proportion-row" style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-color);">
+          <span class="proportion-name text-accent">⚙️ Rasio Mix (Basah)</span>
+          <span class="proportion-value text-accent" style="width:auto;">B.Kapur ${ratio} : Trass 1.0</span>
+        </div>`;
+    }
+  }
 }
 
 function displayDeviation(avgComp, idealWet) {
@@ -1449,22 +1599,38 @@ function displayDeviation(avgComp, idealWet) {
   const compTable = document.getElementById('comparisonTable');
   compTable.innerHTML = '';
 
-  materials.forEach(m => {
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
+    });
+  } else {
+    displayMaterials = [...materials];
+  }
+
+  const effectiveIdealWet = { ...idealWet };
+  if (mode === 'mix') {
+    effectiveIdealWet['Mix Material'] = (idealWet['Batu Kapur'] || 0) + (idealWet['Trass'] || 0);
+  }
+
+  displayMaterials.forEach(m => {
     const actual = avgComp[m];
-    const ideal = idealWet[m];
-    const delta = actual - ideal;
+    const ideal = effectiveIdealWet[m];
+    const delta = ideal - actual;
     const pctDelta = ideal !== 0 ? (delta / ideal * 100) : 0;
 
     let statusClass = 'good', statusLabel = '✅ OK';
-    if (Math.abs(pctDelta) > 3) { statusClass = 'warning'; statusLabel = '⚠️ Deviasi'; }
-    if (Math.abs(pctDelta) > 8) { statusClass = 'critical'; statusLabel = '❌ Signifikan'; }
+    if (Math.abs(pctDelta) > 0.5) { statusClass = 'warning'; statusLabel = '⚠️ Deviasi'; }
+    if (Math.abs(pctDelta) > 2.0) { statusClass = 'critical'; statusLabel = '❌ Signifikan'; }
 
     compTable.innerHTML += `
       <tr>
         <td><strong>${m}</strong></td>
         <td>${actual.toFixed(2)}</td>
         <td>${ideal.toFixed(2)}</td>
-        <td style="color: ${delta >= 0 ? 'var(--danger)' : 'var(--info)'}; font-weight:600">
+        <td style="color: ${delta >= 0 ? 'var(--info)' : 'var(--danger)'}; font-weight:600">
           ${delta >= 0 ? '+' : ''}${delta.toFixed(2)}
         </td>
         <td>${pctDelta >= 0 ? '+' : ''}${pctDelta.toFixed(1)}%</td>
@@ -1480,19 +1646,35 @@ function displayDeviationParamsOnly(avgParams, recalcResult) {
   const compTable = document.getElementById('comparisonTable');
   compTable.innerHTML = '';
 
-  // Compare original design wet vs recalculated wet
-  const originalWet = lastResult.wetProportions;
-  const idealWet = recalcResult.wetProportions;
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
+    });
+  } else {
+    displayMaterials = [...materials];
+  }
 
-  materials.forEach(m => {
+  // Compare original design wet vs recalculated wet
+  const originalWet = { ...lastResult.wetProportions };
+  const idealWet = { ...recalcResult.wetProportions };
+
+  if (mode === 'mix') {
+    originalWet['Mix Material'] = (originalWet['Batu Kapur'] || 0) + (originalWet['Trass'] || 0);
+    idealWet['Mix Material'] = (idealWet['Batu Kapur'] || 0) + (idealWet['Trass'] || 0);
+  }
+
+  displayMaterials.forEach(m => {
     const origVal = originalWet[m];
     const idealVal = idealWet[m];
     const delta = idealVal - origVal;
     const pctDelta = origVal !== 0 ? (delta / origVal * 100) : 0;
 
     let statusClass = 'good', statusLabel = '✅ OK';
-    if (Math.abs(pctDelta) > 3) { statusClass = 'warning'; statusLabel = '⚠️ Deviasi'; }
-    if (Math.abs(pctDelta) > 8) { statusClass = 'critical'; statusLabel = '❌ Signifikan'; }
+    if (Math.abs(pctDelta) > 0.5) { statusClass = 'warning'; statusLabel = '⚠️ Deviasi'; }
+    if (Math.abs(pctDelta) > 2.0) { statusClass = 'critical'; statusLabel = '❌ Signifikan'; }
 
     compTable.innerHTML += `
       <tr>
@@ -1509,82 +1691,58 @@ function displayDeviationParamsOnly(avgParams, recalcResult) {
 }
 
 // ===== 7. CONCLUSION & PREDICTION =====
-function generateConclusion(avgParams, avgComp, recalcResult, originalResult) {
-  const idealWet = recalcResult.wetProportions;
+function generateConclusion(avgParams, avgComp, recalcResult) {
+  const idealWetRaw = recalcResult.wetProportions;
   const predContainer = document.getElementById('predictionCards');
   predContainer.innerHTML = '';
 
-  // Build conclusion text
-  const conclusionBox = document.getElementById('conclusionBox');
-  let conclusionHTML = '<h3 style="margin-bottom:12px;color:var(--text-accent);">📋 Ringkasan Analisis</h3>';
-
-  // Compare parameters
-  const paramDeviations = [];
-  ['LOI', 'SO3', 'BTL'].forEach(prop => {
-    const avg = avgParams[prop];
-    const target = originalResult.targets[prop];
-    const delta = avg - target;
-    const pctDelta = target !== 0 ? Math.abs(delta / target * 100) : 0;
-    if (pctDelta > 3) {
-      paramDeviations.push({ prop, delta, pctDelta, avg, target });
-    }
-  });
-
-  if (paramDeviations.length === 0) {
-    conclusionHTML += '<p style="color:var(--success);">✅ <strong>Semua parameter aktual (LOI, SO3, BTL) berada dalam batas toleransi</strong> terhadap target desain.</p>';
-  } else {
-    conclusionHTML += '<p style="color:var(--warning);">⚠️ <strong>Terdapat deviasi parameter aktual</strong> dari target desain:</p><ul style="margin:8px 0 12px 20px;color:var(--text-secondary);">';
-    paramDeviations.forEach(d => {
-      const dir = d.delta > 0 ? 'lebih tinggi' : 'lebih rendah';
-      conclusionHTML += `<li><strong>${d.prop}</strong>: Aktual ${d.avg.toFixed(3)} vs Target ${d.target.toFixed(3)} (${dir} ${d.pctDelta.toFixed(1)}%)</li>`;
+  const mode = getFeederMode();
+  let displayMaterials = [];
+  if (mode === 'mix') {
+    materials.forEach(m => {
+      if (m === 'Batu Kapur') displayMaterials.push('Mix Material');
+      else if (m !== 'Trass') displayMaterials.push(m);
     });
-    conclusionHTML += '</ul>';
-  }
-
-  // Compare compositions
-  const compDeviations = [];
-  materials.forEach(m => {
-    const actual = avgComp[m];
-    const ideal = idealWet[m];
-    const delta = actual - ideal;
-    const pctDelta = ideal !== 0 ? (delta / ideal * 100) : 0;
-    if (Math.abs(pctDelta) > 3) {
-      compDeviations.push({ material: m, actual, ideal, delta, pctDelta });
-    }
-  });
-
-  if (compDeviations.length === 0) {
-    conclusionHTML += '<p style="color:var(--success);">✅ <strong>Komposisi basah aktual sesuai dengan proporsi RMD</strong> yang dihitung dari raw mix design.</p>';
   } else {
-    conclusionHTML += '<p style="margin-top:12px;color:var(--warning);">⚠️ <strong>Komposisi basah berikut perlu disesuaikan:</strong></p>';
+    displayMaterials = [...materials];
   }
 
-  conclusionBox.innerHTML = conclusionHTML;
+  const idealWet = { ...idealWetRaw };
+  if (mode === 'mix') {
+    idealWet['Mix Material'] = (idealWet['Batu Kapur'] || 0) + (idealWet['Trass'] || 0);
+  }
+
+  // Build conclusion text (HIDDEN as per user request to focus on cards)
+  const conclusionBox = document.getElementById('conclusionBox');
+  conclusionBox.style.display = 'none'; // Hide the entire summary box
+  conclusionBox.innerHTML = '';
 
   // Per-material prediction cards
-  materials.forEach(m => {
+  displayMaterials.forEach(m => {
     const actual = avgComp[m];
+    if (actual === 0) return; // Skip materials with 0% actual usage (as per user request)
+
     const ideal = idealWet[m];
-    const delta = actual - ideal;
+    const delta = ideal - actual;
     const pctDelta = ideal !== 0 ? (delta / ideal * 100) : 0;
 
     let status, icon, label, detail;
 
-    if (Math.abs(pctDelta) <= 3) {
+    if (Math.abs(pctDelta) <= 0.5) {
       status = 'normal';
       icon = '✅';
       label = 'Sesuai';
-      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Deviasi ${pctDelta.toFixed(1)}% — dalam batas toleransi.`;
+      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Deviasi ${Math.abs(pctDelta).toFixed(1)}% — dalam toleransi.`;
     } else if (delta > 0) {
       status = 'excess';
       icon = '📈';
       label = 'Berlebih';
-      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Kelebihan ${Math.abs(delta).toFixed(2)}% (${Math.abs(pctDelta).toFixed(1)}%). <strong>Kurangi</strong> material ini sebesar ~${Math.abs(delta).toFixed(2)}%.`;
+      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Nilai desain (RMD) lebih tinggi dari aktual. Material di feeder terindikasi <strong>berlebih</strong>. <strong>Kurangi</strong> rasio ~${Math.abs(delta).toFixed(2)}%.`;
     } else {
       status = 'deficit';
       icon = '📉';
       label = 'Kurang';
-      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Kekurangan ${Math.abs(delta).toFixed(2)}% (${Math.abs(pctDelta).toFixed(1)}%). <strong>Tambahkan</strong> material ini sebesar ~${Math.abs(delta).toFixed(2)}%.`;
+      detail = `Aktual: ${actual.toFixed(2)}% | RMD: ${ideal.toFixed(2)}%<br>Nilai desain (RMD) lebih rendah dari aktual. Material di feeder terindikasi <strong>kurang</strong>. <strong>Tambahkan</strong> rasio ~${Math.abs(delta).toFixed(2)}%.`;
     }
 
     predContainer.innerHTML += `
@@ -1599,34 +1757,15 @@ function generateConclusion(avgParams, avgComp, recalcResult, originalResult) {
   });
 }
 
-function generateConclusionParamsOnly(avgParams, originalResult) {
+function generateConclusionParamsOnly(avgParams) {
   const conclusionBox = document.getElementById('conclusionBox');
+  conclusionBox.style.display = 'block'; // Ensure it's visible for text-only messages
   const predContainer = document.getElementById('predictionCards');
   predContainer.innerHTML = '';
 
-  let html = '<h3 style="margin-bottom:12px;color:var(--text-accent);">📋 Ringkasan Analisis</h3>';
-  html += '<p style="color:var(--text-secondary);">Data komposisi basah aktual tidak diisi. Analisis hanya dibuat berdasarkan parameter LOI/SO3/BTL.</p>';
-
-  const paramDeviations = [];
-  ['LOI', 'SO3', 'BTL'].forEach(prop => {
-    const avg = avgParams[prop];
-    const target = originalResult.targets[prop];
-    const delta = avg - target;
-    const pctDelta = target !== 0 ? Math.abs(delta / target * 100) : 0;
-    if (pctDelta > 3) paramDeviations.push({ prop, delta, pctDelta, avg, target });
-  });
-
-  if (paramDeviations.length === 0) {
-    html += '<p style="color:var(--success);margin-top:8px;">✅ Semua parameter aktual dalam toleransi.</p>';
-  } else {
-    html += '<ul style="margin:8px 0 0 20px;color:var(--text-secondary);">';
-    paramDeviations.forEach(d => {
-      const dir = d.delta > 0 ? 'lebih tinggi' : 'lebih rendah';
-      html += `<li><strong>${d.prop}</strong>: Aktual ${d.avg.toFixed(3)} vs Target ${d.target.toFixed(3)} (${dir} ${d.pctDelta.toFixed(1)}%)</li>`;
-    });
-    html += '</ul>';
-    html += '<p style="color:var(--text-muted);margin-top:8px;font-size:0.85rem;">💡 Masukkan data komposisi basah aktual untuk analisis material yang lebih detail.</p>';
-  }
+  let html = '<h3 style="margin-bottom:12px;color:var(--text-accent);">📋 Status Parameter</h3>';
+  html += '<p style="color:var(--text-secondary);">Rata-rata pencapaian aktual: LOI: <strong>${avgParams.LOI.toFixed(3)}</strong> | SO3: <strong>${avgParams.SO3.toFixed(3)}</strong> | BTL: <strong>${avgParams.BTL.toFixed(3)}</strong></p>';
+  html += '<p style="color:var(--text-muted); margin-top:8px; font-size:0.85rem; font-style:italic;">💡 Masukkan data komposisi basah aktual (feeder) untuk melihat analisis deviasi material per jenis.</p>';
 
   conclusionBox.innerHTML = html;
 }
