@@ -22,6 +22,12 @@ let materialData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let materials = [...DEFAULT_MATERIALS, 'CKD', 'Fly Ash']; // CKD & FA added as default custom materials
 let lastResult = null; // stores last solver result
 
+// ===== Cost Data =====
+let costData = {
+  materials: {}, // { materialName: price }
+  additional: [] // [ { name: "", value: 0 } ]
+};
+
 // ===== Product Type & Feeder Mode =====
 function getProductType() {
   const el = document.getElementById('productType');
@@ -52,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupMaterialControls();
   setupSidebar();
   setupSimulation();
+  setupCostConfig();
 });
 
 // ===== SIDEBAR NAVIGATION =====
@@ -77,6 +84,7 @@ function setupSidebar() {
       // If switching to simulation, re-render the table
       if (pageId === 'pageSimulation') renderSimTable();
       if (pageId === 'pageSimulationWet') renderSimulationWetTable();
+      if (pageId === 'pageCostConfig') renderCostConfig();
     });
   });
 
@@ -154,18 +162,28 @@ function renderSimTable() {
 function saveData() {
   localStorage.setItem('rmd_materials', JSON.stringify(materials));
   localStorage.setItem('rmd_materialData', JSON.stringify(materialData));
+  localStorage.setItem('rmd_costData', JSON.stringify(costData));
 }
 
 function loadData() {
   const savedMaterials = localStorage.getItem('rmd_materials');
   const savedData = localStorage.getItem('rmd_materialData');
+  const savedCost = localStorage.getItem('rmd_costData');
   
   if (savedMaterials && savedData) {
     try {
       materials = JSON.parse(savedMaterials);
       materialData = JSON.parse(savedData);
     } catch (e) {
-      console.error('Error loading data', e);
+      console.error('Error loading core data', e);
+    }
+  }
+
+  if (savedCost) {
+    try {
+      costData = JSON.parse(savedCost);
+    } catch (e) {
+      console.error('Error loading cost data', e);
     }
   }
 }
@@ -269,6 +287,11 @@ function runSimulation() {
         </div>`;
     }
   }
+
+  // Display Total Production Cost
+  updateCostDisplay('simTotalCost', wetProp);
+
+  document.getElementById('simResultSection').classList.remove('hidden');
 
   // Display Wet Proportions
   const wetHead = document.getElementById('simWetTableHead');
@@ -426,6 +449,11 @@ function runSimulationWet() {
     }
   }
 
+  // Display Total Production Cost
+  updateCostDisplay('simWetTotalCost', wetProp);
+
+  document.getElementById('simWetResultSection').classList.remove('hidden');
+  
   // Display Dry Proportions
   const dryHead = document.getElementById('simWetToDryTableHead');
   const dryRow = document.getElementById('simWetToDryTableRow');
@@ -1043,6 +1071,9 @@ function displayResults(dryProp, wetProp, achieved, targets) {
 
   // Show the comparison section
   document.getElementById('comparisonSection').classList.remove('hidden');
+
+  // Display Total Production Cost
+  updateCostDisplay('rmdTotalCost', wetProp);
 }
 
 // ===== 5. ACTUAL 24-HOUR DATA SYSTEM =====
@@ -1597,6 +1628,11 @@ function displayRecalculated(result) {
         </div>`;
     }
   }
+
+  // Display Total Production Cost
+  // For analysis page, the container is not explicitly created in HTML yet, 
+  // but I added rmdTotalCost in index.html for Page 1. 
+  // The analysis page results are split into several cards. 
 }
 
 function displayDeviation(avgComp, idealWet) {
@@ -1827,6 +1863,12 @@ function resetAll() {
   document.getElementById('recalcSection').classList.add('hidden');
   document.getElementById('deviationSection').classList.add('hidden');
   
+  // Clear cost displays
+  ['rmdTotalCost', 'simTotalCost', 'simWetTotalCost'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+
   const btnExport = document.getElementById('btnExportPDF');
   if (btnExport) btnExport.style.display = 'none';
 
@@ -1846,3 +1888,126 @@ function resetAll() {
   showStatus(statusEl, 'info', 'ℹ️ Semua data telah direset ke default.');
 }
 
+// ===== 8. KONFIGURASI BIAYA =====
+function setupCostConfig() {
+  renderCostConfig();
+  document.getElementById('btnAddAdditionalCost').addEventListener('click', () => {
+    costData.additional.push({ name: '', value: 0 });
+    renderAdditionalCostList();
+    saveData();
+  });
+}
+
+function renderCostConfig() {
+  renderMaterialCostTable();
+  renderAdditionalCostList();
+}
+
+function renderMaterialCostTable() {
+  const tbody = document.getElementById('materialCostBody');
+  tbody.innerHTML = '';
+
+  materials.forEach(m => {
+    const price = costData.materials[m] || 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${m}</strong></td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--text-muted); font-size: 0.8rem;">IDR</span>
+          <input type="number" class="cell-input material-cost-input" data-material="${m}" value="${price}" placeholder="0" style="text-align: right;">
+        </div>
+      </td>
+    `;
+
+    tr.querySelector('.material-cost-input').addEventListener('change', (e) => {
+      costData.materials[m] = parseFloat(e.target.value) || 0;
+      saveData();
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function renderAdditionalCostList() {
+  const container = document.getElementById('additionalCostList');
+  container.innerHTML = '';
+
+  costData.additional.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'additional-cost-item';
+    div.innerHTML = `
+      <input type="text" class="cost-name-input" placeholder="Nama Biaya (misal: Listrik)" value="${item.name}">
+      <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+        <span style="color: var(--text-muted); font-size: 0.8rem;">IDR</span>
+        <input type="number" class="cost-value-input" placeholder="0" value="${item.value}">
+      </div>
+      <button class="btn-remove-cost" title="Hapus">✕</button>
+    `;
+
+    div.querySelector('.cost-name-input').addEventListener('change', (e) => {
+      costData.additional[idx].name = e.target.value;
+      saveData();
+    });
+
+    div.querySelector('.cost-value-input').addEventListener('change', (e) => {
+      costData.additional[idx].value = parseFloat(e.target.value) || 0;
+      saveData();
+    });
+
+    div.querySelector('.btn-remove-cost').addEventListener('click', () => {
+      costData.additional.splice(idx, 1);
+      renderAdditionalCostList();
+      saveData();
+    });
+
+    container.appendChild(div);
+  });
+}
+
+/**
+ * Calculate total production cost per ton of cement.
+ * formula: sum(wet_proportion_i * price_i / 100) + sum(additional_costs)
+ */
+function calculateTotalCost(wetProportions) {
+  let materialTotal = 0;
+  let hasPrices = false;
+
+  materials.forEach(m => {
+    const price = costData.materials[m] || 0;
+    const prop = wetProportions[m] || 0;
+    if (price > 0) hasPrices = true;
+    materialTotal += (prop * price / 100);
+  });
+
+  let additionalTotal = 0;
+  costData.additional.forEach(item => {
+    additionalTotal += (item.value || 0);
+    if (item.value > 0) hasPrices = true;
+  });
+
+  if (!hasPrices) return null;
+  return materialTotal + additionalTotal;
+}
+
+function updateCostDisplay(containerId, wetProportions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const total = calculateTotalCost(wetProportions);
+
+  if (total === null) {
+    container.innerHTML = `
+      <div class="total-cost-label">Total Biaya Produksi</div>
+      <div class="total-cost-pending">Belum dihitung (atur harga di Konfigurasi)</div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="total-cost-label">Total Biaya Produksi</div>
+      <div class="total-cost-value">
+        <span class="total-cost-currency">IDR</span>${total.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+        <span class="total-cost-unit">/ Ton Semen</span>
+      </div>
+    `;
+  }
+}

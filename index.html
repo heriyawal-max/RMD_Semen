@@ -48,6 +48,10 @@
         <span class="sidebar-icon">💧</span>
         <span class="sidebar-text">Simulasi Basis Basah</span>
       </li>
+      <li class="sidebar-item" data-page="pageCostConfig">
+        <span class="sidebar-icon">⚙️</span>
+        <span class="sidebar-text">Konfigurasi Biaya</span>
+      </li>
     </ul>
     <div class="sidebar-footer">
       <div class="product-type-sidebar">
@@ -193,6 +197,11 @@
 
           <div class="section-divider"><span>Nilai Tercapai vs Target</span></div>
           <div id="achievedValues" class="result-card" style="margin-top: 0;"></div>
+
+          <div class="section-divider" style="margin-top: 24px;"><span>Estimasi Biaya Produksi</span></div>
+          <div id="rmdTotalCost" class="result-card total-cost-card">
+            <!-- Populated by JS -->
+          </div>
         </section>
 
       </div>
@@ -434,6 +443,11 @@
 
           <div id="simResults" class="result-card"></div>
 
+          <div class="section-divider" style="margin-top: 24px;"><span>Estimasi Biaya Produksi</span></div>
+          <div id="simTotalCost" class="result-card total-cost-card">
+            <!-- Populated by JS -->
+          </div>
+
           <div class="section-divider" style="margin-top: 24px;"><span>Simulasi Setpoint (Komposisi Basah)</span></div>
           <div class="table-wrapper">
             <table id="simWetTable">
@@ -514,6 +528,11 @@
 
           <div id="simWetResults" class="result-card"></div>
 
+          <div class="section-divider" style="margin-top: 24px;"><span>Estimasi Biaya Produksi</span></div>
+          <div id="simWetTotalCost" class="result-card total-cost-card">
+            <!-- Populated by JS -->
+          </div>
+
           <div class="section-divider" style="margin-top: 24px;"><span>Simulasi Proporsi Kering (Dry Basis
               Ekuivalen)</span></div>
           <div class="table-wrapper">
@@ -532,6 +551,62 @@
           </div>
         </section>
 
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ===== PAGE 5: KONFIGURASI BIAYA ===== -->
+    <!-- ========================================== -->
+    <div class="page" id="pageCostConfig">
+      <div class="app-container">
+        <header class="app-header">
+          <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
+            Konfigurasi Biaya Produksi
+          </h1>
+          <p>Atur harga bahan baku dan biaya operasional lainnya per ton semen</p>
+          <div class="header-line"></div>
+        </header>
+
+        <section class="section animate-in">
+          <div class="section-header">
+            <div class="section-icon">💰</div>
+            <div>
+              <div class="section-title">Harga Bahan Baku (per Ton)</div>
+              <div class="section-subtitle">Masukkan harga beli/produksi setiap bahan baku</div>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="materialCostTable">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Harga per Ton (IDR)</th>
+                </tr>
+              </thead>
+              <tbody id="materialCostBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section animate-in">
+          <div class="section-header">
+            <div class="section-icon">⚡</div>
+            <div>
+              <div class="section-title">Biaya Operasional & Lainnya (per Ton Semen)</div>
+              <div class="section-subtitle">Tambahkan biaya tambahan seperti Listrik, Tenaga Kerja, Transportasi, dll.
+              </div>
+            </div>
+          </div>
+          <div id="additionalCostList" class="additional-cost-list">
+            <!-- Populated by JS -->
+          </div>
+          <button class="btn btn-primary btn-sm" id="btnAddAdditionalCost" style="margin-top: 16px;">
+            ➕ Tambah Item Biaya
+          </button>
+        </section>
       </div>
     </div>
 
