@@ -9,12 +9,12 @@ const DEFAULT_MATERIALS = ['Clinker', 'Gypsum', 'Batu Kapur', 'Trass'];
 const DEFAULT_PROPERTIES = ['LOI', 'SO3', 'BTL', 'H2O'];
 
 const DEFAULT_DATA = {
-  Clinker:     { LOI: 0.24,  SO3: 0.30,  BTL: 0.25,  H2O: 0.10 },
-  Gypsum:      { LOI: 20.58, SO3: 42.68, BTL: 4.27,  H2O: 15.00 },
-  'Batu Kapur':{ LOI: 40.60, SO3: 0.30,  BTL: 0.83,  H2O: 9.00 },
-  Trass:       { LOI: 10.60, SO3: 0.07,  BTL: 66.30, H2O: 29.00 },
-  CKD:         { LOI: 37.08, SO3: 0.03,  BTL: 12.10, H2O: 0.20 },
-  'Fly Ash':   { LOI: 0.38,  SO3: 0.58,  BTL: 64.00, H2O: 0.40 },
+  Clinker: { LOI: 0.24, SO3: 0.30, BTL: 0.25, H2O: 0.10 },
+  Gypsum: { LOI: 20.58, SO3: 42.68, BTL: 4.27, H2O: 15.00 },
+  'Batu Kapur': { LOI: 40.60, SO3: 0.30, BTL: 0.83, H2O: 9.00 },
+  Trass: { LOI: 10.60, SO3: 0.07, BTL: 66.30, H2O: 29.00 },
+  CKD: { LOI: 37.08, SO3: 0.03, BTL: 12.10, H2O: 0.20 },
+  'Fly Ash': { LOI: 0.38, SO3: 0.58, BTL: 64.00, H2O: 0.40 },
 };
 
 // ===== App State =====
@@ -146,7 +146,7 @@ function renderSimTable() {
     if (isClinic) {
       dataRow.innerHTML += `<td><input type="number" class="cell-input sim-input" id="simClinker" data-material="${m}" value="${val}" readonly title="Auto: 100% - total lainnya" style="opacity:0.6;cursor:not-allowed;"></td>`;
     } else {
-      dataRow.innerHTML += `<td><input type="number" step="0.01" class="cell-input sim-input" data-material="${m}" value="${val}" placeholder="0"></td>`;
+      dataRow.innerHTML += `<td><input type="number" step="0.5" class="cell-input sim-input" data-material="${m}" value="${val}" placeholder="0"></td>`;
     }
   });
 
@@ -169,7 +169,7 @@ function loadData() {
   const savedMaterials = localStorage.getItem('rmd_materials');
   const savedData = localStorage.getItem('rmd_materialData');
   const savedCost = localStorage.getItem('rmd_costData');
-  
+
   if (savedMaterials && savedData) {
     try {
       materials = JSON.parse(savedMaterials);
@@ -265,7 +265,7 @@ function runSimulation() {
     wetProp[m] = (dryProp[m] / k) || 0;
     totalWet += wetProp[m];
   });
-  
+
   // Normalize
   if (totalWet > 0) {
     materials.forEach(m => {
@@ -298,7 +298,7 @@ function runSimulation() {
   const wetRow = document.getElementById('simWetTableRow');
   wetHead.innerHTML = '';
   wetRow.innerHTML = '';
-  
+
   materials.forEach(m => {
     wetHead.innerHTML += `<th>${m}</th>`;
     wetRow.innerHTML += `<td style="font-weight:600;color:var(--text-accent);">${(wetProp[m] || 0).toFixed(2)}</td>`;
@@ -312,7 +312,7 @@ function runSimulation() {
 function renderSimulationWetTable() {
   const thead = document.getElementById('simWetInputTableHead');
   const tbody = document.getElementById('simWetInputTableRow');
-  
+
   // Preserve existing values to avoid reset on tab switch
   const existingValues = {};
   document.querySelectorAll('.sim-wet-input').forEach(input => {
@@ -335,7 +335,7 @@ function renderSimulationWetTable() {
       </td>`;
     } else {
       tbody.innerHTML += `<td>
-        <input type="number" step="0.01" class="cell-input sim-wet-input" data-material="${m}" value="${val}" placeholder="0">
+        <input type="number" step="0.5" class="cell-input sim-wet-input" data-material="${m}" value="${val}" placeholder="0">
       </td>`;
     }
   });
@@ -453,13 +453,13 @@ function runSimulationWet() {
   updateCostDisplay('simWetTotalCost', wetProp);
 
   document.getElementById('simWetResultSection').classList.remove('hidden');
-  
+
   // Display Dry Proportions
   const dryHead = document.getElementById('simWetToDryTableHead');
   const dryRow = document.getElementById('simWetToDryTableRow');
   dryHead.innerHTML = '';
   dryRow.innerHTML = '';
-  
+
   materials.forEach(m => {
     dryHead.innerHTML += `<th>${m}</th>`;
     dryRow.innerHTML += `<td style="font-weight:600;color:var(--text-accent);">${(dryProp[m] || 0).toFixed(2)}</td>`;
@@ -569,7 +569,7 @@ function renderCompositionTable() {
     let row = `<tr><td><div class="row-label">${prop}${prop === 'H2O' ? ' <span class="badge">%</span>' : ''}</div></td>`;
     materials.forEach(m => {
       const val = materialData[m][prop];
-      row += `<td><input type="number" step="0.01" class="cell-input" 
+      row += `<td><input type="number" step="0.5" class="cell-input" 
                 data-material="${m}" data-prop="${prop}" 
                 value="${val}" title="${m} ${prop}"></td>`;
     });
@@ -642,10 +642,10 @@ function setupLockControls() {
     const div = document.createElement('div');
     div.className = `lock-item ${isCustom ? 'locked' : ''}`;
     div.innerHTML = `
-      <input type="checkbox" id="lock_${m.replace(/\s/g,'_')}" data-material="${m}" ${isCustom ? 'checked' : ''}>
+      <input type="checkbox" id="lock_${m.replace(/\s/g, '_')}" data-material="${m}" ${isCustom ? 'checked' : ''}>
       <span class="lock-icon">${isCustom ? '🔒' : '🔓'}</span>
       <span class="lock-name">${m}</span>
-      <input type="number" step="0.1" class="lock-value-input" 
+      <input type="number" step="0.5" class="lock-value-input" 
              data-material="${m}" value="${isCustom ? '0' : '5'}" min="0" max="100" placeholder="%">
     `;
 
@@ -740,7 +740,7 @@ function runSolver() {
 
   // Free materials
   const freeMats = materials.filter(m => !(m in lockedWet));
-  
+
   if (freeMats.length < 1) {
     showStatus(statusEl, 'error', '⚠️ Setidaknya satu material harus tidak di-lock');
     return;
@@ -906,7 +906,7 @@ function solveLeastSquares(A, b, n, m, targetSum) {
   // Start with equal distribution, then adjust
   const maxIter = 5000;
   const lr = 0.005;
-  
+
   // Initialize with equal proportions
   let x = new Array(n).fill(targetSum / n);
 
@@ -1088,7 +1088,7 @@ function setupActualSection() {
 function renderActualTable() {
   const mode = getFeederMode();
   let displayMaterials = [];
-  
+
   if (mode === 'mix') {
     // Replace Batu Kapur and Trass with Mix Material
     materials.forEach(m => {
@@ -1124,13 +1124,13 @@ function renderActualTable() {
 
     // LOI, SO3, BTL inputs
     ['LOI', 'SO3', 'BTL'].forEach(prop => {
-      tr.innerHTML += `<td><input type="number" step="0.01" class="cell-input actual-param" 
+      tr.innerHTML += `<td><input type="number" step="0.5" class="cell-input actual-param" 
                         data-row="${i}" data-prop="${prop}" placeholder="-"></td>`;
     });
 
     // Material wet composition inputs
     displayMaterials.forEach(m => {
-      tr.innerHTML += `<td><input type="number" step="0.01" class="cell-input actual-comp" 
+      tr.innerHTML += `<td><input type="number" step="0.5" class="cell-input actual-comp" 
                         data-row="${i}" data-material="${m}" placeholder="-"></td>`;
     });
 
@@ -1528,7 +1528,7 @@ function displayAverageSummary(avgParams, avgComp, hasComp) {
     } else {
       displayMaterials = [...materials];
     }
-    
+
     headRow.innerHTML = '<th>Parameter</th>';
     displayMaterials.forEach(m => { headRow.innerHTML += `<th>${m}</th>`; });
     headRow.innerHTML += '<th>Total</th>';
@@ -1827,8 +1827,8 @@ function exportPDF() {
   const dateEl = document.getElementById('printDate');
   const prodEl = document.getElementById('printProductType');
   const now = new Date();
-  
-  const dateStr = now.toLocaleDateString('id-ID', { 
+
+  const dateStr = now.toLocaleDateString('id-ID', {
     day: '2-digit', month: 'long', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
@@ -1862,7 +1862,7 @@ function resetAll() {
   document.getElementById('averageSection').classList.add('hidden');
   document.getElementById('recalcSection').classList.add('hidden');
   document.getElementById('deviationSection').classList.add('hidden');
-  
+
   // Clear cost displays
   ['rmdTotalCost', 'simTotalCost', 'simWetTotalCost'].forEach(id => {
     const el = document.getElementById(id);
@@ -1913,9 +1913,9 @@ function renderMaterialCostTable() {
     tr.innerHTML = `
       <td><strong>${m}</strong></td>
       <td>
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
           <span style="color: var(--text-muted); font-size: 0.8rem;">IDR</span>
-          <input type="number" class="cell-input material-cost-input" data-material="${m}" value="${price}" placeholder="0" style="text-align: right;">
+          <input type="number" class="cell-input material-cost-input" data-material="${m}" value="${price}" placeholder="0" style="text-align: right; width: 160px;">
         </div>
       </td>
     `;

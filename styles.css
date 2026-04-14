@@ -1201,20 +1201,39 @@ th:hover .col-header-actions {
   margin-left: 4px;
   font-weight: 700;
 }
-/* ===== Print Styles (PDF Export) ===== */
+/* ===== Print Styles (PDF Export — One Page Report) ===== */
 @media print {
-  body {
-    background: white !important;
-    padding: 0 !important;
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
   }
 
-  body::before, .sidebar, .mobile-header, .btn-group, .material-controls, .product-type-sidebar, .header-line {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 8pt !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide all non-essential UI */
+  body::before, .sidebar, .mobile-header, .btn-group,
+  .material-controls, .product-type-sidebar, .header-line,
+  .status-msg, .lock-controls, .section-icon,
+  #comparisonSection, .total-cost-card {
     display: none !important;
   }
 
   .main-content {
     margin-left: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
   }
 
   .page {
@@ -1225,64 +1244,185 @@ th:hover .col-header-actions {
     display: block !important;
   }
 
-  /* Hide raw input table for Analysis page */
-  #comparisonSection {
+  .app-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .app-header {
     display: none !important;
   }
 
+  /* Compact sections */
   .section {
     border: none !important;
     box-shadow: none !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 6px !important;
     padding: 0 !important;
     background: white !important;
+    page-break-inside: avoid;
   }
 
   .section-header {
-    margin-bottom: 10px !important;
+    margin-bottom: 4px !important;
+    padding: 0 !important;
   }
 
-  .section-icon {
-    display: none !important;
+  .section-title {
+    font-size: 9pt !important;
+    margin-bottom: 0 !important;
+  }
+
+  .section-subtitle {
+    font-size: 6.5pt !important;
+    margin-top: 0 !important;
   }
 
   .section-divider {
-    margin: 15px 0 !important;
+    margin: 4px 0 !important;
   }
 
+  .section-divider span {
+    font-size: 7pt !important;
+  }
+
+  /* Tables */
   .table-wrapper {
     box-shadow: none !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #ccc !important;
+    border-radius: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
   }
 
   th, td {
     border-bottom: 1px solid #ddd !important;
     color: black !important;
-    font-size: 10pt !important;
+    font-size: 7.5pt !important;
+    padding: 3px 6px !important;
   }
 
   th {
     background: #f0f0f0 !important;
+    font-size: 7pt !important;
+    text-transform: uppercase;
   }
 
+  /* Proportion bars */
+  .proportion-row {
+    padding: 2px 0 !important;
+    gap: 4px !important;
+  }
+
+  .proportion-name {
+    font-size: 7.5pt !important;
+  }
+
+  .proportion-value {
+    font-size: 7.5pt !important;
+  }
+
+  .proportion-bar {
+    height: 6px !important;
+  }
+
+  .proportion-total {
+    padding-top: 2px !important;
+    font-size: 7.5pt !important;
+  }
+
+  .deviation-badge {
+    font-size: 6pt !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Index Clinker row */
+  .index-clinker-row {
+    padding: 3px 6px !important;
+    margin-top: 2px !important;
+  }
+
+  .index-clinker-value {
+    font-size: 10pt !important;
+  }
+
+  .index-clinker-badge {
+    font-size: 6pt !important;
+  }
+
+  /* Result cards compact */
+  .result-card {
+    padding: 4px 8px !important;
+    margin: 0 !important;
+    border-radius: 4px !important;
+  }
+
+  /* Prediction cards — compact 3-column grid */
   .prediction-grid {
-    display: block !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4px !important;
   }
 
   .prediction-card {
-    margin-bottom: 10px !important;
+    margin-bottom: 0 !important;
+    padding: 4px 6px !important;
     break-inside: avoid;
     border: 1px solid #ddd !important;
     background: white !important;
     color: black !important;
+    border-radius: 4px !important;
   }
 
-  .prediction-card.excess { border-left: 5px solid var(--danger) !important; }
-  .prediction-card.deficit { border-left: 5px solid var(--warning) !important; }
-  .prediction-card.normal { border-left: 5px solid var(--success) !important; }
+  .prediction-card.excess { border-left: 3px solid #d32f2f !important; }
+  .prediction-card.deficit { border-left: 3px solid #ff9800 !important; }
+  .prediction-card.normal { border-left: 3px solid #4caf50 !important; }
 
+  .prediction-icon {
+    font-size: 10pt !important;
+    margin-bottom: 0 !important;
+  }
+
+  .material-name {
+    font-size: 8pt !important;
+    margin-bottom: 1px !important;
+  }
+
+  .prediction-detail {
+    font-size: 6.5pt !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Print header */
   .print-only {
     display: block !important;
+  }
+
+  .report-header {
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+    border-bottom: 1.5px solid #333 !important;
+  }
+
+  .report-header h2 {
+    font-size: 12pt !important;
+    margin: 4px 0 2px !important;
+  }
+
+  .report-header img {
+    width: 24px !important;
+  }
+
+  .report-meta {
+    font-size: 7pt !important;
+    margin-top: 2px !important;
+  }
+
+  /* Dual proportion columns if present */
+  .result-card .proportion-row {
+    min-height: unset !important;
   }
 }
 
@@ -1310,15 +1450,6 @@ th:hover .col-header-actions {
   margin-top: 5px;
 }
 
-/* Ensure cards in print look good */
-@media print {
-  .prediction-card .material-name {
-    margin-bottom: 4px;
-  }
-  .prediction-detail {
-    font-size: 9pt;
-  }
-}
 /* ===== Cost Configuration Page ===== */
 .additional-cost-list {
   display: flex;
