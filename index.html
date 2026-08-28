@@ -50,7 +50,7 @@
       </li>
       <li class="sidebar-item" data-page="pageCostConfig">
         <span class="sidebar-icon">⚙️</span>
-        <span class="sidebar-text">Konfigurasi Biaya</span>
+        <span class="sidebar-text">Konfigurasi</span>
       </li>
     </ul>
     <div class="sidebar-footer">
@@ -555,19 +555,42 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- ===== PAGE 5: KONFIGURASI BIAYA ===== -->
+    <!-- ===== PAGE 5: KONFIGURASI ===== -->
     <!-- ========================================== -->
     <div class="page" id="pageCostConfig">
       <div class="app-container">
         <header class="app-header">
           <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
             <img src="logo.png" alt="QCST Logo" style="width: 36px; height: auto; object-fit: contain;">
-            Konfigurasi Biaya Produksi
+            Konfigurasi
           </h1>
-          <p>Atur harga bahan baku dan biaya operasional lainnya per ton semen</p>
+          <p>Atur rumus index clinker, harga bahan baku, dan biaya operasional per ton semen</p>
           <div class="header-line"></div>
         </header>
 
+        <!-- SECTION 1: RUMUS INDEX CLINKER -->
+        <section class="section animate-in" id="formulaConfigSection">
+          <div class="section-header">
+            <div class="section-icon">📐</div>
+            <div>
+              <div class="section-title">Konfigurasi Rumus Index Clinker</div>
+              <div class="section-subtitle">Sesuaikan konstanta dan faktor/koefisien pengali Index Clinker berdasarkan karakteristik material</div>
+            </div>
+          </div>
+
+          <div class="formula-general-banner">
+            <div class="formula-banner-title">📘 Format Rumus Index Clinker:</div>
+            <div class="formula-banner-equation">
+              <code>Index Clinker = Konstanta - [ (k<sub>BTL</sub> × BTL) + (k<sub>LOI</sub> × LOI) + (k<sub>SO3</sub> × SO3) ]</code>
+            </div>
+          </div>
+
+          <div class="formula-cards-grid" id="formulaCardsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- SECTION 2: HARGA BAHAN BAKU -->
         <section class="section animate-in">
           <div class="section-header">
             <div class="section-icon">💰</div>

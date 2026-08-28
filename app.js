@@ -28,6 +28,24 @@ let costData = {
   additional: [] // [ { name: "", value: 0 } ]
 };
 
+// ===== Index Clinker Formula Config =====
+const DEFAULT_INDEX_CLINKER_CONFIG = {
+  PCC: {
+    constant: 100,
+    factorBTL: 1.0,
+    factorLOI: 2.2727, // 100 / 44
+    factorSO3: 2.15
+  },
+  OPC: {
+    constant: 100,
+    factorBTL: 1.0,
+    factorLOI: 2.2727, // 100 / 44
+    factorSO3: 0.8006
+  }
+};
+
+let indexClinkerConfig = JSON.parse(JSON.stringify(DEFAULT_INDEX_CLINKER_CONFIG));
+
 // ===== Product Type & Feeder Mode =====
 function getProductType() {
   const el = document.getElementById('productType');
@@ -41,11 +59,16 @@ function getFeederMode() {
 
 function calcIndexClinker(LOI, SO3, BTL) {
   const type = getProductType();
-  if (type === 'OPC') {
-    return 100 - (BTL + (100 / 44 * LOI) + (0.8006 * SO3));
-  }
-  // PCC (default)
-  return 100 - (BTL + (100 / 44 * LOI) + (2.15 * SO3));
+  const cfg = (indexClinkerConfig && indexClinkerConfig[type])
+    ? indexClinkerConfig[type]
+    : (DEFAULT_INDEX_CLINKER_CONFIG[type] || DEFAULT_INDEX_CLINKER_CONFIG.PCC);
+
+  const c = parseFloat(cfg.constant) ?? 100;
+  const kBTL = parseFloat(cfg.factorBTL) ?? 1.0;
+  const kLOI = parseFloat(cfg.factorLOI) ?? 2.2727;
+  const kSO3 = parseFloat(cfg.factorSO3) ?? 2.15;
+
+  return c - ((kBTL * BTL) + (kLOI * LOI) + (kSO3 * SO3));
 }
 
 // ===== DOM Ready =====
@@ -163,12 +186,14 @@ function saveData() {
   localStorage.setItem('rmd_materials', JSON.stringify(materials));
   localStorage.setItem('rmd_materialData', JSON.stringify(materialData));
   localStorage.setItem('rmd_costData', JSON.stringify(costData));
+  localStorage.setItem('rmd_indexClinkerConfig', JSON.stringify(indexClinkerConfig));
 }
 
 function loadData() {
   const savedMaterials = localStorage.getItem('rmd_materials');
   const savedData = localStorage.getItem('rmd_materialData');
   const savedCost = localStorage.getItem('rmd_costData');
+  const savedFormula = localStorage.getItem('rmd_indexClinkerConfig');
 
   if (savedMaterials && savedData) {
     try {
@@ -184,6 +209,14 @@ function loadData() {
       costData = JSON.parse(savedCost);
     } catch (e) {
       console.error('Error loading cost data', e);
+    }
+  }
+
+  if (savedFormula) {
+    try {
+      indexClinkerConfig = JSON.parse(savedFormula);
+    } catch (e) {
+      console.error('Error loading index clinker config', e);
     }
   }
 }
@@ -1888,7 +1921,7 @@ function resetAll() {
   showStatus(statusEl, 'info', 'ℹ️ Semua data telah direset ke default.');
 }
 
-// ===== 8. KONFIGURASI BIAYA =====
+// ===== 8. KONFIGURASI (INDEX CLINKER & BIAYA) =====
 function setupCostConfig() {
   renderCostConfig();
   document.getElementById('btnAddAdditionalCost').addEventListener('click', () => {
@@ -1899,8 +1932,103 @@ function setupCostConfig() {
 }
 
 function renderCostConfig() {
+  renderIndexClinkerConfig();
   renderMaterialCostTable();
   renderAdditionalCostList();
+}
+
+function renderIndexClinkerConfig() {
+  const container = document.getElementById('formulaCardsGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const products = ['PCC', 'OPC'];
+
+  products.forEach(prod => {
+    if (!indexClinkerConfig[prod]) {
+      indexClinkerConfig[prod] = JSON.parse(JSON.stringify(DEFAULT_INDEX_CLINKER_CONFIG[prod]));
+    }
+    const cfg = indexClinkerConfig[prod];
+
+    const card = document.createElement('div');
+    card.className = 'formula-card';
+    card.id = `formulaCard_${prod}`;
+
+    card.innerHTML = `
+      <div class="formula-card-header">
+        <div class="formula-card-title-group">
+          <span class="formula-product-badge">${prod}</span>
+          <span class="formula-card-name">Index Clinker (${prod})</span>
+        </div>
+        <button type="button" class="btn-reset-formula" data-product="${prod}" title="Kembalikan ke rumus standar ${prod}">
+          🔄 Reset Default
+        </button>
+      </div>
+
+      <div class="formula-preview-box">
+        <div class="formula-preview-label">Rumus Aktif:</div>
+        <div class="formula-preview-code" id="formulaPreview_${prod}">
+          Index Clinker = ${cfg.constant} - [ (${cfg.factorBTL} × BTL) + (${cfg.factorLOI} × LOI) + (${cfg.factorSO3} × SO3) ]
+        </div>
+      </div>
+
+      <div class="formula-inputs-grid">
+        <div class="formula-input-item">
+          <label>Konstanta (C)</label>
+          <input type="number" step="0.5" class="formula-input" data-product="${prod}" data-key="constant" value="${cfg.constant}">
+        </div>
+        <div class="formula-input-item">
+          <label>Faktor BTL (k<sub>BTL</sub>)</label>
+          <input type="number" step="0.01" class="formula-input" data-product="${prod}" data-key="factorBTL" value="${cfg.factorBTL}">
+        </div>
+        <div class="formula-input-item">
+          <label>Faktor LOI (k<sub>LOI</sub>)</label>
+          <input type="number" step="0.0001" class="formula-input" data-product="${prod}" data-key="factorLOI" value="${cfg.factorLOI}">
+        </div>
+        <div class="formula-input-item">
+          <label>Faktor SO3 (k<sub>SO3</sub>)</label>
+          <input type="number" step="0.0001" class="formula-input" data-product="${prod}" data-key="factorSO3" value="${cfg.factorSO3}">
+        </div>
+      </div>
+
+      <div class="formula-note">
+        💡 Default ${prod}: Konstanta=100, BTL=1.0, LOI=2.2727 (100/44), SO3=${prod === 'PCC' ? '2.15' : '0.8006'}.
+      </div>
+    `;
+
+    // Input change handlers
+    card.querySelectorAll('.formula-input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const p = e.target.dataset.product;
+        const key = e.target.dataset.key;
+        const val = parseFloat(e.target.value);
+        indexClinkerConfig[p][key] = isNaN(val) ? 0 : val;
+        saveData();
+
+        // Update preview
+        const c = indexClinkerConfig[p].constant;
+        const kBTL = indexClinkerConfig[p].factorBTL;
+        const kLOI = indexClinkerConfig[p].factorLOI;
+        const kSO3 = indexClinkerConfig[p].factorSO3;
+        const previewEl = document.getElementById(`formulaPreview_${p}`);
+        if (previewEl) {
+          previewEl.textContent = `Index Clinker = ${c} - [ (${kBTL} × BTL) + (${kLOI} × LOI) + (${kSO3} × SO3) ]`;
+        }
+      });
+    });
+
+    // Reset button handler
+    const resetBtn = card.querySelector('.btn-reset-formula');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        indexClinkerConfig[prod] = JSON.parse(JSON.stringify(DEFAULT_INDEX_CLINKER_CONFIG[prod]));
+        saveData();
+        renderIndexClinkerConfig();
+      });
+    }
+
+    container.appendChild(card);
+  });
 }
 
 function renderMaterialCostTable() {
