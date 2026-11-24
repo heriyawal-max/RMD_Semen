@@ -114,7 +114,7 @@ function setupSidebar() {
   const productToggle = document.getElementById('productType');
   if (productToggle) {
     productToggle.addEventListener('change', () => {
-      if (lastResult) calculateProportions();
+      if (lastResult) runSolver();
     });
   }
 
@@ -124,7 +124,7 @@ function setupSidebar() {
       // Re-render actual UI when mode changes
       renderActualTable();
       if (lastResult) {
-        calculateProportions();
+        runSolver();
       }
     });
   }
@@ -880,6 +880,13 @@ function runSolver() {
     dryProportions[m] = (dryProportions[m] / totalDry) * 100;
   });
 
+  // Calculate material index (Index Bahan = dry / ((100 - H2O)/100))
+  const materialIndex = {};
+  materials.forEach(m => {
+    const km = (100 - (materialData[m].H2O || 0)) / 100;
+    materialIndex[m] = km > 0 ? (dryProportions[m] / km) : 0;
+  });
+
   // Calculate achieved values (from dry proportions)
   const achieved = { LOI: 0, SO3: 0, BTL: 0 };
   materials.forEach(m => {
@@ -889,10 +896,10 @@ function runSolver() {
     achieved.BTL += p * materialData[m].BTL / 100;
   });
 
-  lastResult = { dryProportions, wetProportions, achieved, targets };
+  lastResult = { dryProportions, wetProportions, materialIndex, achieved, targets };
 
   // Display results
-  displayResults(dryProportions, wetProportions, achieved, targets);
+  displayResults(dryProportions, wetProportions, achieved, targets, materialIndex);
   showStatus(statusEl, 'success', '✅ Proporsi berhasil dihitung!');
 }
 
@@ -1002,7 +1009,7 @@ function solveLeastSquaresOverdetermined(A, b, n, m) {
 }
 
 // ===== 4. DISPLAY RESULTS =====
-function displayResults(dryProp, wetProp, achieved, targets) {
+function displayResults(dryProp, wetProp, achieved, targets, matIndex) {
   const resultSection = document.getElementById('resultSection');
   resultSection.classList.remove('hidden');
   resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1052,6 +1059,39 @@ function displayResults(dryProp, wetProp, achieved, targets) {
       <span>Total</span>
       <span>${wetTotal.toFixed(2)}%</span>
     </div>`;
+
+  // Material Index (Index Bahan)
+  const indexContainer = document.getElementById('materialIndexProportions');
+  if (indexContainer) {
+    indexContainer.innerHTML = '';
+    const indexData = matIndex ? { ...matIndex } : {};
+    let indexTotal = 0;
+    materials.forEach(m => {
+      if (indexData[m] === undefined) {
+        const km = (100 - (materialData[m].H2O || 0)) / 100;
+        indexData[m] = km > 0 ? (dryProp[m] / km) : 0;
+      }
+      indexTotal += indexData[m];
+    });
+
+    const maxIndex = Math.max(...materials.map(m => indexData[m])) || 1;
+    materials.forEach(m => {
+      const val = indexData[m];
+      indexContainer.innerHTML += `
+        <div class="proportion-row">
+          <span class="proportion-name">${m}</span>
+          <div class="proportion-bar">
+            <div class="proportion-bar-fill" style="width: ${(val / maxIndex * 100)}%"></div>
+          </div>
+          <span class="proportion-value">${val.toFixed(2)}%</span>
+        </div>`;
+    });
+    indexContainer.innerHTML += `
+      <div class="proportion-total">
+        <span>Total</span>
+        <span>${indexTotal.toFixed(2)}%</span>
+      </div>`;
+  }
 
   // Mix Ratio display for RMD Target Output
   const mode = getFeederMode();
