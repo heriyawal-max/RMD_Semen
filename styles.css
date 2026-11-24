@@ -1424,6 +1424,122 @@ th:hover .col-header-actions {
   .result-card .proportion-row {
     min-height: unset !important;
   }
+
+  /* Page RMD Print Optimization */
+  #pageRMD .result-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin-top: 4px !important;
+  }
+
+  #pageRMD .target-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 4px !important;
+  }
+
+  #pageRMD .target-item {
+    padding: 3px 6px !important;
+  }
+
+  #pageRMD .target-item label {
+    font-size: 6.5pt !important;
+    margin-bottom: 2px !important;
+  }
+
+  #pageRMD .target-item input {
+    border: none !important;
+    background: transparent !important;
+    font-size: 8pt !important;
+    padding: 0 !important;
+    font-weight: 700 !important;
+  }
+
+  #pageRMD .cell-input {
+    border: none !important;
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-size: 7.5pt !important;
+    text-align: center !important;
+  }
+
+  #pageRMD .total-cost-card {
+    display: block !important;
+    padding: 3px 6px !important;
+    margin-top: 4px !important;
+  }
+
+  #pageRMD .total-cost-value {
+    font-size: 10pt !important;
+  }
+
+  .col-header-actions,
+  .rmd-export-group {
+    display: none !important;
+  }
+}
+
+/* ===== PNG Export Capture Styling ===== */
+.exporting-png {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  padding: 24px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+}
+
+.exporting-png .print-only {
+  display: block !important;
+}
+
+.exporting-png .app-header,
+.exporting-png .btn-group,
+.exporting-png .material-controls,
+.exporting-png .col-header-actions,
+.exporting-png .lock-controls,
+.exporting-png .status-msg,
+.exporting-png .header-line,
+.exporting-png .section-icon,
+.exporting-png .rmd-export-group {
+  display: none !important;
+}
+
+.exporting-png .section {
+  background: transparent !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+  margin-bottom: 16px !important;
+  padding: 16px !important;
+}
+
+.exporting-png .section-title {
+  color: #0f172a !important;
+}
+
+.exporting-png .result-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.exporting-png .result-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+}
+
+.exporting-png .cell-input,
+.exporting-png .target-item input {
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
 }
 
 .print-only {

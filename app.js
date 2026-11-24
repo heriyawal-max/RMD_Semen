@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSidebar();
   setupSimulation();
   setupCostConfig();
+  setupRmdExport();
 });
 
 // ===== SIDEBAR NAVIGATION =====
@@ -1911,6 +1912,104 @@ function exportPDF() {
 
   // Trigger browser print
   window.print();
+}
+
+// ===== EXPORT RAW MIX DESIGN (PDF & PNG) =====
+function setupRmdExport() {
+  const btnPdf = document.getElementById('btnExportRmdPDF');
+  const btnPng = document.getElementById('btnExportRmdPNG');
+
+  if (btnPdf) btnPdf.addEventListener('click', exportRmdPDF);
+  if (btnPng) btnPng.addEventListener('click', exportRmdPNG);
+}
+
+function updateRmdPrintHeader() {
+  const dateEl = document.getElementById('printRmdDate');
+  const prodEl = document.getElementById('printRmdProductType');
+  const now = new Date();
+
+  const dateStr = now.toLocaleDateString('id-ID', {
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+
+  const mode = getFeederMode() === 'mix' ? 'MIX FEEDER' : 'NORMAL FEEDER';
+  if (dateEl) dateEl.textContent = `Tanggal: ${dateStr}`;
+  if (prodEl) prodEl.textContent = `Produk: ${getProductType()} (${mode})`;
+}
+
+function exportRmdPDF() {
+  updateRmdPrintHeader();
+  window.print();
+}
+
+async function exportRmdPNG() {
+  const exportBtn = document.getElementById('btnExportRmdPNG');
+  const originalText = exportBtn ? exportBtn.innerHTML : '';
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '⏳ Menyiapkan PNG...';
+  }
+
+  const captureArea = document.getElementById('rmdReportCaptureArea');
+  if (!captureArea) {
+    if (exportBtn) {
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = originalText;
+    }
+    return;
+  }
+
+  try {
+    updateRmdPrintHeader();
+
+    // Sync input values to value attributes so html2canvas captures live text
+    captureArea.querySelectorAll('input').forEach(inp => {
+      inp.setAttribute('value', inp.value);
+    });
+
+    captureArea.classList.add('exporting-png');
+
+    if (typeof html2canvas !== 'function') {
+      throw new Error('Library html2canvas belum dimuat.');
+    }
+
+    const canvas = await html2canvas(captureArea, {
+      scale: 2, // High resolution for crisp text
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: 1200
+    });
+
+    captureArea.classList.remove('exporting-png');
+
+    const productType = getProductType();
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const filename = `RMD_${productType}_${dateStr}_${timeStr}.png`;
+
+    // Download PNG
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    const statusEl = document.getElementById('solverStatus');
+    if (statusEl) showStatus(statusEl, 'success', `✅ Gambar PNG (${filename}) berhasil diunduh!`);
+  } catch (err) {
+    captureArea.classList.remove('exporting-png');
+    console.error('Error exporting PNG:', err);
+    alert('Gagal mengekspor gambar PNG: ' + err.message);
+  } finally {
+    if (exportBtn) {
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = originalText;
+    }
+  }
 }
 
 // ===== UTILITY FUNCTIONS =====

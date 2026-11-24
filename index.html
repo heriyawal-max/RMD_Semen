@@ -90,7 +90,7 @@
     <!-- ===== PAGE 1: RAW MIX DESIGN ===== -->
     <!-- ========================================== -->
     <div class="page active" id="pageRMD">
-      <div class="app-container">
+      <div class="app-container" id="rmdReportCaptureArea">
 
         <header class="app-header">
           <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
@@ -100,6 +100,20 @@
           <p>Cement Raw Mix Proportion Calculator</p>
           <div class="header-line"></div>
         </header>
+
+        <!-- PRINTER & EXPORT HEADER (Visible only in PDF/Print/Export) -->
+        <div class="print-only" id="printRmdHeader">
+          <div class="report-header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px;">
+              <img src="logo.png" alt="Logo" style="width: 42px; height: auto;">
+              <h2 style="margin:0; font-size: 1.5rem; letter-spacing: 0.5px;">LAPORAN RAW MIX DESIGN</h2>
+            </div>
+            <div class="report-meta">
+              <span id="printRmdProductType">Produk: PCC</span>
+              <span id="printRmdDate">Tanggal: -</span>
+            </div>
+          </div>
+        </div>
 
         <!-- SECTION 1: KOMPOSISI MATERIAL -->
         <section class="section animate-in" id="compositionSection">
@@ -205,6 +219,16 @@
           <div class="section-divider" style="margin-top: 24px;"><span>Estimasi Biaya Produksi</span></div>
           <div id="rmdTotalCost" class="result-card total-cost-card">
             <!-- Populated by JS -->
+          </div>
+
+          <!-- EXPORT BUTTONS FOR RMD (PDF & PNG) -->
+          <div class="btn-group rmd-export-group" style="margin-top: 24px; justify-content: center; gap: 12px;">
+            <button type="button" class="btn btn-success" id="btnExportRmdPDF">
+              📄 Export Laporan (PDF)
+            </button>
+            <button type="button" class="btn btn-primary" id="btnExportRmdPNG">
+              🖼️ Export Laporan (PNG)
+            </button>
           </div>
         </section>
 
@@ -639,6 +663,7 @@
 
   </div>
 
+  <script src="html2canvas.min.js"></script>
   <script src="app.js"></script>
 </body>
 
