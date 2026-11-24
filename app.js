@@ -1983,6 +1983,10 @@ async function exportRmdPNG() {
       }
     });
 
+    // Temporarily remove .animate-in classes so cloned DOM does not start with opacity: 0
+    const animatedElements = captureArea.querySelectorAll('.animate-in');
+    animatedElements.forEach(el => el.classList.remove('animate-in'));
+
     captureArea.classList.add('exporting-png');
 
     if (typeof html2canvas !== 'function') {
@@ -1999,6 +2003,7 @@ async function exportRmdPNG() {
     });
 
     captureArea.classList.remove('exporting-png');
+    animatedElements.forEach(el => el.classList.add('animate-in'));
 
     const productType = getProductType();
     const now = new Date();

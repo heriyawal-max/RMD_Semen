@@ -1484,10 +1484,18 @@ th:hover .col-header-actions {
 }
 
 /* ===== PNG Export Capture Styling ===== */
+.exporting-png,
+.exporting-png * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
 .exporting-png {
   background: #ffffff !important;
-  color: #1e293b !important;
-  padding: 24px !important;
+  color: #0f172a !important;
+  padding: 24px 32px !important;
   border-radius: 8px !important;
   box-shadow: none !important;
   max-width: 1100px !important;
@@ -1511,35 +1519,217 @@ th:hover .col-header-actions {
 }
 
 .exporting-png .section {
-  background: transparent !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
   box-shadow: none !important;
   margin-bottom: 16px !important;
-  padding: 16px !important;
+  padding: 18px !important;
+  border-radius: 8px !important;
 }
 
 .exporting-png .section-title {
   color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
 }
 
-.exporting-png .result-card {
-  background: #f8fafc !important;
+.exporting-png .section-subtitle {
+  color: #475569 !important;
+  font-size: 0.82rem !important;
+}
+
+.exporting-png table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+.exporting-png th {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 8px 10px !important;
+}
+
+.exporting-png td {
+  background: #ffffff !important;
+  color: #0f172a !important;
   border: 1px solid #e2e8f0 !important;
+  padding: 6px 10px !important;
 }
 
-.exporting-png .result-grid {
+.exporting-png .row-label {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+.exporting-png .cell-input {
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  text-align: center !important;
+}
+
+.exporting-png .target-grid {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 12px !important;
+  margin-bottom: 0 !important;
 }
 
-.exporting-png .cell-input,
+.exporting-png .target-item {
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+}
+
+.exporting-png .target-item label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  margin-bottom: 4px !important;
+}
+
 .exporting-png .target-item input {
   border: 1px solid transparent !important;
   background: transparent !important;
   box-shadow: none !important;
   color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 1.15rem !important;
+  padding: 2px 0 !important;
+}
+
+.exporting-png .result-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 14px !important;
+  margin-top: 12px !important;
+}
+
+.exporting-png .result-card {
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+.exporting-png .result-card h3 {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+.exporting-png .proportion-row {
+  color: #1e293b !important;
+  padding: 6px 0 !important;
+}
+
+.exporting-png .proportion-name {
+  color: #334155 !important;
   font-weight: 600 !important;
+  font-size: 0.88rem !important;
+}
+
+.exporting-png .proportion-value {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+}
+
+.exporting-png .proportion-bar {
+  background: #e2e8f0 !important;
+  height: 8px !important;
+  border-radius: 4px !important;
+}
+
+.exporting-png .proportion-bar-fill {
+  background: #b71c1c !important;
+  border-radius: 4px !important;
+}
+
+.exporting-png .proportion-total {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  border-top: 2px solid #cbd5e1 !important;
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+}
+
+.exporting-png .section-divider span {
+  color: #334155 !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  background: #ffffff !important;
+}
+
+.exporting-png .section-divider::before {
+  border-color: #cbd5e1 !important;
+}
+
+.exporting-png #achievedValues {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+}
+
+.exporting-png .index-clinker-row {
+  background: #fef2f2 !important;
+  border: 1.5px solid #fecaca !important;
+  border-radius: 6px !important;
+  margin-top: 8px !important;
+  padding: 8px 12px !important;
+}
+
+.exporting-png .index-clinker-row .proportion-name {
+  color: #991b1b !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+.exporting-png .index-clinker-value {
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+  font-size: 1.25rem !important;
+}
+
+.exporting-png .index-clinker-badge {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+  font-weight: 700 !important;
+}
+
+.exporting-png .total-cost-card {
+  display: block !important;
+  background: #f8fafc !important;
+  border: 2px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+.exporting-png .total-cost-label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+.exporting-png .total-cost-value {
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+  font-size: 1.6rem !important;
+}
+
+.exporting-png .total-cost-pending {
+  color: #64748b !important;
+  font-style: italic !important;
 }
 
 .print-only {
