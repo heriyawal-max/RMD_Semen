@@ -73,6 +73,14 @@ function calcIndexClinker(LOI, SO3, BTL) {
 
 // ===== DOM Ready =====
 document.addEventListener('DOMContentLoaded', () => {
+  if (typeof LOGO_BASE64 !== 'undefined') {
+    document.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src');
+      if (src && (src === 'logo.png' || src.endsWith('logo.png'))) {
+        img.src = LOGO_BASE64;
+      }
+    });
+  }
   loadData();
   renderCompositionTable();
   setupTargetListeners();
@@ -1968,6 +1976,13 @@ async function exportRmdPNG() {
       inp.setAttribute('value', inp.value);
     });
 
+    // Ensure all images are inline base64 to avoid tainted canvas on file:// or strict CORS
+    captureArea.querySelectorAll('img').forEach(img => {
+      if (typeof LOGO_BASE64 !== 'undefined' && !img.src.startsWith('data:')) {
+        img.src = LOGO_BASE64;
+      }
+    });
+
     captureArea.classList.add('exporting-png');
 
     if (typeof html2canvas !== 'function') {
@@ -1977,6 +1992,7 @@ async function exportRmdPNG() {
     const canvas = await html2canvas(captureArea, {
       scale: 2, // High resolution for crisp text
       useCORS: true,
+      allowTaint: false,
       logging: false,
       backgroundColor: '#ffffff',
       windowWidth: 1200
